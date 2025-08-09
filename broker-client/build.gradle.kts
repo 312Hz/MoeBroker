@@ -1,19 +1,14 @@
 plugins {
-    id("java")
+    application
+    id("com.github.johnrengelman.shadow").version("8.1.1")
 }
 
-group = "me.xiaoying.moebroker"
-version = "1.0.0"
+group = "me.xiaoying.moebroker.client"
 
-repositories {
-    mavenCentral()
+application {
+    mainClass.set("me.xiaoying.moebroker.client.BootStrap")
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-}
-
-tasks.test {
-    useJUnitPlatform()
+    implementation(project(":broker-api"))
 }
