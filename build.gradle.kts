@@ -24,6 +24,9 @@ subprojects {
         // sqlfactory
         implementation("me.xiaoying:sqlfactory:1.0.0")
 
+        // logger
+        implementation("me.xiaoying:logger:1.0.1")
+
         // lombok
         compileOnly("org.projectlombok:lombok:1.18.30")
         annotationProcessor("org.projectlombok:lombok:1.18.30")
