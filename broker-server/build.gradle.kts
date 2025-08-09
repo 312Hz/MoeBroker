@@ -1,19 +1,29 @@
 plugins {
-    id("java")
+    application
+    id("com.github.johnrengelman.shadow").version("8.1.1")
 }
 
-group = "me.xiaoying.moebroker"
-version = "1.0.0"
-
-repositories {
-    mavenCentral()
-}
+group = "me.xiaoying.moebroker.server"
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    implementation(project(":broker-api"))
 }
 
-tasks.test {
-    useJUnitPlatform()
+application {
+    mainClass.set("me.xiaoying.moebroker.server.BootStrap")
+}
+
+tasks {
+    jar {
+        enabled = false
+    }
+
+    build {
+        dependsOn(shadowJar)
+    }
+
+    shadowJar {
+        archiveClassifier.set("")
+        archiveFileName.set("${rootProject.name}-server-${project.version}.jar")
+    }
 }
