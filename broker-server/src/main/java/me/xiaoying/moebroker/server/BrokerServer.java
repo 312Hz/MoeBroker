@@ -1,32 +1,23 @@
 package me.xiaoying.moebroker.server;
 
-import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import me.xiaoying.moebroker.api.Broker;
 import me.xiaoying.moebroker.api.BrokerAddress;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
 
 public class BrokerServer {
     private final BrokerAddress address;
-
-    private final List<Socket> sockets = new ArrayList<>();
 
     public BrokerServer(BrokerAddress address) {
         this.address = address;
@@ -48,7 +39,6 @@ public class BrokerServer {
                                     .addLast(new StringDecoder())
                                     .addLast(new StringEncoder())
                                     .addLast();
-//                            pipeline.addLast(new JsonClientHandler());
                         }
                     });
 
