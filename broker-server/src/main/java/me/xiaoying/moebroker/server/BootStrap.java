@@ -10,17 +10,19 @@ import me.xiaoying.moebroker.server.logger.LoggerListener;
 
 public class BootStrap {
     public static void main(String[] args) {
+        // 日志管理器
+        EventHandle.registerEvent(new LoggerListener().initialize());
+
+        // 初始化
         Broker.setLogger(LoggerFactory.getLogger());
 
         Broker.setLogger(Broker.getLogger());
-        EventHandle.registerEvent(new LoggerListener());
         Broker.getLogger().info("Initializing Broker Server...");
 
         Broker.getLogger().info("Initializing FileManager...");
         Broker.setFileManager(new SimpleFileManager());
         Broker.getFileManager().register(new FileConfig());
         Broker.getFileManager().loads();
-
 
         BrokerServer brokerServer = new BrokerServer(new BrokerAddress("0.0.0.0", 22332));
         brokerServer.run();

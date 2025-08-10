@@ -7,6 +7,9 @@ group = "me.xiaoying.moebroker.server"
 
 dependencies {
     implementation(project(":broker-api"))
+
+    // netty
+    implementation("io.netty:netty-all:5.0.0.Alpha2")
 }
 
 application {
