@@ -1,13 +1,8 @@
 plugins {
-    application
     id("com.github.johnrengelman.shadow").version("8.1.1")
 }
 
 group = "me.xiaoying.moebroker.client"
-
-application {
-    mainClass.set("me.xiaoying.moebroker.client.BootStrap")
-}
 
 dependencies {
     implementation(project(":broker-api"))
@@ -18,17 +13,17 @@ dependencies {
     implementation("io.netty:netty-all:5.0.0.Alpha2")
 }
 
-tasks {
-    jar {
-        enabled = false
-    }
-
-    build {
-        dependsOn(shadowJar)
-    }
-
-    shadowJar {
-        archiveClassifier.set("")
-        archiveFileName.set("moebroker-client-${project.version}.jar")
-    }
-}
+//tasks {
+//    jar {
+//        enabled = false
+//    }
+//
+//    build {
+//        dependsOn(shadowJar)
+//    }
+//
+//    shadowJar {
+//        archiveClassifier.set("")
+//        archiveFileName.set("moebroker-client-${project.version}.jar")
+//    }
+//}
