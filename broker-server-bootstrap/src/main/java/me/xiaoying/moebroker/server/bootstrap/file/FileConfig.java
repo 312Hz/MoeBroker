@@ -1,4 +1,4 @@
-package me.xiaoying.moebroker.server.file;
+package me.xiaoying.moebroker.server.bootstrap.file;
 
 import me.xiaoying.moebroker.api.file.SFile;
 

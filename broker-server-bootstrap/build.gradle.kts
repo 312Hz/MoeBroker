@@ -1,21 +1,21 @@
+import org.gradle.kotlin.dsl.build
+import org.gradle.kotlin.dsl.invoke
+
 plugins {
     application
+
     id("com.github.johnrengelman.shadow").version("8.1.1")
 }
 
-group = "me.xiaoying.moebroker.client"
-
 application {
-    mainClass.set("me.xiaoying.moebroker.client.BootStrap")
+    mainClass.set("me.xiaoying.moebroker.server.bootstrap.BootStrap")
 }
+
+group = "me.xiaoying.moebroker.server.bootstrap"
 
 dependencies {
     implementation(project(":broker-api"))
-
-    // javassist
-    implementation("org.javassist:javassist:3.30.2-GA")
-    // netty
-    implementation("io.netty:netty-all:5.0.0.Alpha2")
+    implementation(project(":broker-server"))
 }
 
 tasks {
@@ -29,6 +29,6 @@ tasks {
 
     shadowJar {
         archiveClassifier.set("")
-        archiveFileName.set("moebroker-client-${project.version}.jar")
+        archiveFileName.set("moebroker-server-bootstrap-${project.version}.jar")
     }
 }
