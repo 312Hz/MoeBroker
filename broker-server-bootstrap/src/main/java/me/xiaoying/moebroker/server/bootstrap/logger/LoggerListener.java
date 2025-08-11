@@ -1,11 +1,10 @@
-package me.xiaoying.moebroker.server.logger;
+package me.xiaoying.moebroker.server.bootstrap.logger;
 
 import me.xiaoying.logger.ChatColor;
 import me.xiaoying.logger.event.EventHandler;
 import me.xiaoying.logger.event.Listener;
 import me.xiaoying.logger.event.log.LogEndEvent;
 import me.xiaoying.logger.event.log.PrepareLogEvent;
-import me.xiaoying.logger.utils.ColorUtil;
 import me.xiaoying.logger.utils.DateUtil;
 import me.xiaoying.moebroker.api.utils.GZIPUtil;
 

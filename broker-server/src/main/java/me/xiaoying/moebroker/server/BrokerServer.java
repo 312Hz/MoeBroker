@@ -10,54 +10,87 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
-import me.xiaoying.moebroker.api.Broker;
 import me.xiaoying.moebroker.api.BrokerAddress;
+import me.xiaoying.moebroker.server.netty.ConnectionEventHandler;
 
 import java.net.InetSocketAddress;
-import java.text.DecimalFormat;
 
-public class BrokerServer {
+public abstract class BrokerServer {
     private final BrokerAddress address;
+    private volatile boolean running = false;
 
     public BrokerServer(BrokerAddress address) {
         this.address = address;
     }
 
+    /**
+     * 当 server 启动时会调用此方法
+     */
+    public abstract void onStart();
+
+    /**
+     * 获取新请求时会调用此方法
+     */
+    public abstract void onOpen();
+
+    /**
+     * 连接关闭时会调用此方法
+     */
+    public abstract void onClose();
+
+    /**
+     * 接收消息时会调用此方法
+     */
+    public abstract void onMessage();
+
+    /**
+     * 报错触发方法
+     */
+    public abstract void onErrorCaught();
+
     public void run() {
-        long start = System.currentTimeMillis();
+        new Thread(() -> {
+            EventLoopGroup workerGroup = new NioEventLoopGroup();
+            ServerBootstrap bootstrap = new ServerBootstrap();
 
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
-        ServerBootstrap bootstrap = new ServerBootstrap();
+            try (EventLoopGroup bossGroup = new NioEventLoopGroup()) {
+                bootstrap.group(bossGroup, workerGroup)
+                        .channel(NioServerSocketChannel.class)
+                        .childHandler(new ChannelInitializer<SocketChannel>() {
+                            @Override
+                            protected void initChannel(SocketChannel socketChannel) throws Exception {
+                                socketChannel.pipeline()
+                                        .addLast(new StringDecoder())
+                                        .addLast(new StringEncoder())
+                                        .addLast(new ConnectionEventHandler(BrokerServer.this));
+                            }
+                        });
 
-        try (EventLoopGroup bossGroup = new NioEventLoopGroup()) {
-            bootstrap.group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel.class)
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline()
-                                    .addLast(new StringDecoder())
-                                    .addLast(new StringEncoder())
-                                    .addLast();
-                        }
-                    });
+                ChannelFuture future = bootstrap.bind(new InetSocketAddress(this.address.getHost(), this.address.getPort()));
 
-            ChannelFuture future = bootstrap.bind(new InetSocketAddress(this.address.getHost(), this.address.getPort()));
+                future.addListener((ChannelFutureListener) channelFuture -> {
+                    if (!future.isSuccess())
+                        return;
 
-            future.addListener((ChannelFutureListener) channelFuture -> {
-                if (!future.isSuccess())
-                    return;
+                    this.running = true;
+                    this.onStart();
+                });
 
-                Broker.getLogger().info("Starting MoeBroker server on {}:{}", BrokerServer.this.address.getHost(), BrokerServer.this.address.getPort());
-                Broker.getLogger().info("Done({}s)! For help, type \"help\"", new DecimalFormat("0.000").format((double) (System.currentTimeMillis() - start) / 1000));
-            });
+                future.sync();
+                future.channel().closeFuture().sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                workerGroup.shutdownGracefully();
+            }
+        }).start();
+    }
 
-            future.sync();
-            future.channel().closeFuture().sync();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            workerGroup.shutdownGracefully();
-        }
+    public BrokerAddress getAddress() {
+        return this.address;
+    }
+
+    public boolean isRunning() {
+        return this.running;
     }
 }
