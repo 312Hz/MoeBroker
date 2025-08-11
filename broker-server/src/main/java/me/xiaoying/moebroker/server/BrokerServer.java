@@ -11,7 +11,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import me.xiaoying.moebroker.api.BrokerAddress;
+import me.xiaoying.moebroker.api.netty.MessageDecoder;
+import me.xiaoying.moebroker.api.netty.MessageEncoder;
 import me.xiaoying.moebroker.server.netty.ConnectionEventHandler;
+import me.xiaoying.moebroker.server.netty.ServerHandler;
 
 import java.net.InetSocketAddress;
 
@@ -60,8 +63,9 @@ public abstract class BrokerServer {
                             @Override
                             protected void initChannel(SocketChannel socketChannel) throws Exception {
                                 socketChannel.pipeline()
-                                        .addLast(new StringDecoder())
-                                        .addLast(new StringEncoder())
+                                        .addLast(new MessageEncoder())
+                                        .addLast(new MessageDecoder())
+                                        .addLast(new ServerHandler())
                                         .addLast(new ConnectionEventHandler(BrokerServer.this));
                             }
                         });

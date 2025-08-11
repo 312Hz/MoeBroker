@@ -1,5 +1,6 @@
 package me.xiaoying.moebroker.api.message;
 
-public class Message {
+import java.io.Serializable;
 
+public interface Message extends Serializable {
 }

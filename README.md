@@ -1,19 +1,21 @@
-# TurtleFrame
+# MoeBroker
 
-> 基于 spigot-api 和 AfyBroker 的 Minecraft 插件开发中间件框架
+> Java 消息中间件，更方便的消息通讯
 
 ## 🌳项目结构
 
 ```bash
 .
-├─turtle-api		# API 接口
-├─turtle-bukkit		# bukkit 插件模块
-├─turtle-web		# 网页模块
-├─turtle-broker		# Broker 服务插件
-└─turtle-common		# 公共模块，于 API 不同，common 只用于内部模块使用，第三方开发者使用 API 无法直接接触 common 模块
+├─broker-api				# API 接口
+├─broker-client				# 客户端模块
+├─broker-server				# 服务端模块
+├─broker-client-bootstrap	# 客户端启动模块(分离 broker-client 以方便开发者自行实现其他功能)
+└─broker-server-bootstrap	# 服务端启动模块(分离 broker-server 以方便开发者自行实现其他功能)
 ```
 
 ## ⚒️技术栈
 
-- SqlFactory -> 数据库操作工具
-- SProxy -> 字节码反射代理工具
+- SqlFactory(hanhan2001/SqlFactory) -> 数据库操作工具
+- Logger(hanhan2001/Logger) -> 日志工具
+- javassist -> 字节码工具
+- netty -> 通讯框架
