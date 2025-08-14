@@ -1,7 +1,7 @@
 package me.xiaoying.moebroker.client.bootstrap;
 
+import me.xiaoying.moebroker.api.Broker;
 import me.xiaoying.moebroker.api.BrokerAddress;
-import me.xiaoying.moebroker.api.message.ObjectMessage;
 import me.xiaoying.moebroker.client.BrokerClient;
 
 public class Client extends BrokerClient {
@@ -11,7 +11,12 @@ public class Client extends BrokerClient {
 
     @Override
     public void onStart() {
-        this.sendMessage(new ObjectMessage("Hello World"));
+//        this.sendMessage(new ObjectMessage("Hello World"));
+    }
+
+    @Override
+    public void onOpen() {
+        Broker.getLogger().info("Connected to MoeBroker server");
     }
 
     @Override
@@ -20,7 +25,7 @@ public class Client extends BrokerClient {
     }
 
     @Override
-    public void onErrorCaught() {
+    public void onErrorCaught(Throwable cause) {
 
     }
 }
