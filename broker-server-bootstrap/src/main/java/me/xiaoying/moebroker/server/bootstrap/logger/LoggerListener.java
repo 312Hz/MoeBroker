@@ -17,22 +17,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LoggerListener implements Listener {
-    public LoggerListener() {
-//        try {
-//            FileWriter fileWriter = new FileWriter(System.getProperty("user.dir") + "/logs/latest.log");
-//            StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-//
-//            for (StackTraceElement stackTraceElement : stackTraceElements) {
-//                fileWriter.write(stackTraceElement.toString() + "\n");
-//            }
-//
-//            fileWriter.write("----------------------\n");
-//            fileWriter.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-    }
-
     @EventHandler
     public void onPrepareLog(PrepareLogEvent event) {
         String dateFormat = event.getLogger().getDateFormat();
