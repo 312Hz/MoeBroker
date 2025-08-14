@@ -2,6 +2,7 @@ package me.xiaoying.moebroker.server.bootstrap;
 
 import me.xiaoying.moebroker.api.Broker;
 import me.xiaoying.moebroker.api.BrokerAddress;
+import me.xiaoying.moebroker.api.RemoteClient;
 import me.xiaoying.moebroker.server.BrokerServer;
 
 import java.util.ArrayList;
@@ -27,8 +28,8 @@ public class Server extends BrokerServer {
     }
 
     @Override
-    public void onOpen() {
-
+    public void onOpen(RemoteClient remote) {
+        Broker.getLogger().info("Connection channel registered: {}:{}", remote.getAddress().getHost(), remote.getAddress().getPort());
     }
 
     @Override
@@ -42,7 +43,7 @@ public class Server extends BrokerServer {
     }
 
     @Override
-    public void onErrorCaught() {
+    public void onError(RemoteClient remote, Throwable cause) {
 
     }
 }

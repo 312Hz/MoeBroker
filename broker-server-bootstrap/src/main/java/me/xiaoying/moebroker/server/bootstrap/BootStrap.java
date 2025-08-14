@@ -21,7 +21,6 @@ public class BootStrap {
         // 初始化
         Broker.setLogger(LoggerFactory.getLogger());
 
-        Broker.setLogger(Broker.getLogger());
         Broker.getLogger().info("Initializing Broker Server...");
 
         Broker.getLogger().info("Initializing FileManager...");
