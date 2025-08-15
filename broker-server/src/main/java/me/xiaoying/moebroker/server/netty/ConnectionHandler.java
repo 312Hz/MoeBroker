@@ -4,6 +4,7 @@ import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 import me.xiaoying.moebroker.api.BrokerAddress;
 import me.xiaoying.moebroker.api.RemoteClient;
+import me.xiaoying.moebroker.api.executor.ExecutorManager;
 import me.xiaoying.moebroker.server.BrokerServer;
 
 public class ConnectionHandler extends ChannelHandlerAdapter {
@@ -17,7 +18,7 @@ public class ConnectionHandler extends ChannelHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
 
-        this.server.onOpen(this.getRemoteClient(ctx));
+        ExecutorManager.getExecutor("broker").execute(() -> this.server.onOpen(this.getRemoteClient(ctx)));
     }
 
     @Override
