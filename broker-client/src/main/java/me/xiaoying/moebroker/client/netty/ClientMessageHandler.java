@@ -2,7 +2,6 @@ package me.xiaoying.moebroker.client.netty;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import me.xiaoying.moebroker.api.Broker;
 import me.xiaoying.moebroker.api.BrokerAddress;
 import me.xiaoying.moebroker.api.RemoteClient;
 import me.xiaoying.moebroker.api.message.Message;

@@ -1,7 +1,6 @@
 package me.xiaoying.moebroker.api.message;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
