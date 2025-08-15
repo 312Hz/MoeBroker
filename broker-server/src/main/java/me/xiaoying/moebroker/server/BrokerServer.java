@@ -6,6 +6,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import me.xiaoying.moebroker.api.BrokerAddress;
+import me.xiaoying.moebroker.api.Protocol;
 import me.xiaoying.moebroker.api.RemoteClient;
 import me.xiaoying.moebroker.api.executor.ExecutorManager;
 import me.xiaoying.moebroker.api.message.MessageHelper;
@@ -13,6 +14,7 @@ import me.xiaoying.moebroker.api.message.RequestMessage;
 import me.xiaoying.moebroker.api.netty.SerializableDecoder;
 import me.xiaoying.moebroker.api.netty.SerializableEncoder;
 import me.xiaoying.moebroker.api.processor.ProcessorManager;
+import me.xiaoying.moebroker.api.service.InvokeMethodMessageProcessor;
 import me.xiaoying.moebroker.server.netty.ConnectionHandler;
 import me.xiaoying.moebroker.server.netty.MessageHandler;
 
@@ -21,7 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public abstract class BrokerServer {
+public abstract class BrokerServer implements Protocol {
     private final BrokerAddress address;
 
     private ChannelFuture channelFuture;
@@ -36,6 +38,7 @@ public abstract class BrokerServer {
         this.address = address;
 
         this.processorManager = new ProcessorManager();
+        this.processorManager.registerProcessor(new InvokeMethodMessageProcessor());
     }
 
     public void run() {
@@ -88,14 +91,12 @@ public abstract class BrokerServer {
         return this.processorManager;
     }
 
+    @Override
     public void oneway(Object object) {
         this.channelFuture.channel().writeAndFlush(new RequestMessage(object));
     }
 
-    public Object invokeSync(Object object) {
-        return this.invokeSync(object, 3000);
-    }
-
+    @Override
     public Object invokeSync(Object object, long timeoutMillis) {
         CompletableFuture<Object> future = new CompletableFuture<>();
 

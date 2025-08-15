@@ -9,12 +9,14 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import me.xiaoying.moebroker.api.BrokerAddress;
+import me.xiaoying.moebroker.api.Protocol;
 import me.xiaoying.moebroker.api.executor.ExecutorManager;
 import me.xiaoying.moebroker.api.message.MessageHelper;
 import me.xiaoying.moebroker.api.message.RequestMessage;
 import me.xiaoying.moebroker.api.netty.SerializableDecoder;
 import me.xiaoying.moebroker.api.netty.SerializableEncoder;
 import me.xiaoying.moebroker.api.processor.ProcessorManager;
+import me.xiaoying.moebroker.api.service.InvokeMethodMessageProcessor;
 import me.xiaoying.moebroker.client.netty.ClientMessageHandler;
 import me.xiaoying.moebroker.client.netty.ConnectionHandler;
 
@@ -23,7 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public abstract class BrokerClient {
+public abstract class BrokerClient implements Protocol {
     private final ProcessorManager processorManager;
 
     private final BrokerAddress address;
@@ -36,7 +38,9 @@ public abstract class BrokerClient {
 
     public BrokerClient(final BrokerAddress address) {
         this.address = address;
+
         this.processorManager = new ProcessorManager();
+        this.processorManager.registerProcessor(new InvokeMethodMessageProcessor());
     }
 
     public void run() {
@@ -55,10 +59,10 @@ public abstract class BrokerClient {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
-                                    .addLast(BrokerClient.this.workerGroup, new SerializableEncoder())
-                                    .addLast(BrokerClient.this.workerGroup, new SerializableDecoder())
-                                    .addLast(BrokerClient.this.workerGroup, new ClientMessageHandler(BrokerClient.this))
-                                    .addLast(BrokerClient.this.workerGroup, new ConnectionHandler(BrokerClient.this));
+                                    .addLast(new SerializableEncoder())
+                                    .addLast(new SerializableDecoder())
+                                    .addLast(new ClientMessageHandler(BrokerClient.this))
+                                    .addLast(new ConnectionHandler(BrokerClient.this));
                         }
                     });
 
@@ -83,14 +87,12 @@ public abstract class BrokerClient {
         }
     }
 
+    @Override
     public void oneway(Object object) {
         this.channelFuture.channel().writeAndFlush(new RequestMessage(object));
     }
 
-    public Object invokeSync(Object object) {
-        return this.invokeSync(object, 3000);
-    }
-
+    @Override
     public Object invokeSync(Object object, long timeoutMillis) {
         CompletableFuture<Object> future = new CompletableFuture<>();
 
