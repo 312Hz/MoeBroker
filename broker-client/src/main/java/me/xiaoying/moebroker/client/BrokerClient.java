@@ -88,6 +88,10 @@ public abstract class BrokerClient {
     }
 
     public Object invokeSync(Object object) {
+        return this.invokeSync(object, 3000);
+    }
+
+    public Object invokeSync(Object object, long timeoutMillis) {
         CompletableFuture<Object> future = new CompletableFuture<>();
 
         RequestMessage message = new RequestMessage(object)
@@ -100,10 +104,14 @@ public abstract class BrokerClient {
         this.channelFuture.channel().writeAndFlush(message);
 
         try {
-            return future.get(5000, TimeUnit.MILLISECONDS);
+            return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public BrokerAddress getAddress() {
+        return this.address;
     }
 
     public ProcessorManager getProcessorManager() {

@@ -8,11 +8,18 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import me.xiaoying.moebroker.api.BrokerAddress;
 import me.xiaoying.moebroker.api.RemoteClient;
 import me.xiaoying.moebroker.api.executor.ExecutorManager;
+import me.xiaoying.moebroker.api.message.MessageHelper;
+import me.xiaoying.moebroker.api.message.RequestMessage;
 import me.xiaoying.moebroker.api.netty.SerializableDecoder;
 import me.xiaoying.moebroker.api.netty.SerializableEncoder;
 import me.xiaoying.moebroker.api.processor.ProcessorManager;
 import me.xiaoying.moebroker.server.netty.ConnectionHandler;
 import me.xiaoying.moebroker.server.netty.MessageHandler;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public abstract class BrokerServer {
     private final BrokerAddress address;
@@ -59,7 +66,7 @@ public abstract class BrokerServer {
              if (!future.isSuccess())
                  return;
 
-             BrokerServer.this.onStart();
+             ExecutorManager.getExecutor("broker").execute(this::onStart);
          });
 
         try {
@@ -81,6 +88,33 @@ public abstract class BrokerServer {
         return this.processorManager;
     }
 
+    public void oneway(Object object) {
+        this.channelFuture.channel().writeAndFlush(new RequestMessage(object));
+    }
+
+    public Object invokeSync(Object object) {
+        return this.invokeSync(object, 3000);
+    }
+
+    public Object invokeSync(Object object, long timeoutMillis) {
+        CompletableFuture<Object> future = new CompletableFuture<>();
+
+        RequestMessage message = new RequestMessage(object)
+                .setChannel(this.channelFuture.channel())
+                .setFuture(future)
+                .setNeedResponse(true);
+
+        MessageHelper.captureMessage(message, message.getChannel());
+
+        this.channelFuture.channel().writeAndFlush(message);
+
+        try {
+            return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * 当 server 启动时会调用此方法
      */
@@ -97,11 +131,6 @@ public abstract class BrokerServer {
     public abstract void onClose(RemoteClient remote);
 
     /**
-     * 接收消息时会调用此方法
-     */
-    public abstract void onMessage();
-
-    /**
      * 报错触发方法
      */
     public void onError(RemoteClient remote, Throwable cause) {
@@ -112,6 +141,4 @@ public abstract class BrokerServer {
 
         cause.printStackTrace();
     }
-
-//    public abstract void onError(RemoteClient remote, Throwable cause);
 }
