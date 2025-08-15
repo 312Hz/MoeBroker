@@ -11,7 +11,6 @@ public class Client extends BrokerClient {
 
     @Override
     public void onStart() {
-//        this.sendMessage(new ObjectMessage("Hello World"));
     }
 
     @Override
@@ -21,11 +20,10 @@ public class Client extends BrokerClient {
 
     @Override
     public void onClose() {
-
     }
 
     @Override
-    public void onErrorCaught(Throwable cause) {
-
+    public void onError(Throwable cause) {
+        cause.printStackTrace();
     }
 }

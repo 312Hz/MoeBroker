@@ -33,17 +33,7 @@ public class Server extends BrokerServer {
     }
 
     @Override
-    public void onClose() {
-
-    }
-
-    @Override
-    public void onMessage() {
-
-    }
-
-    @Override
-    public void onError(RemoteClient remote, Throwable cause) {
-
+    public void onClose(RemoteClient remote) {
+        Broker.getLogger().info("Connection closed: {}:{}", remote.getAddress().getHost(), remote.getAddress().getPort());
     }
 }
