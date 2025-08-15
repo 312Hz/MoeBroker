@@ -8,7 +8,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import me.xiaoying.moebroker.api.BrokerAddress;
 import me.xiaoying.moebroker.api.RemoteClient;
 import me.xiaoying.moebroker.api.executor.ExecutorManager;
+import me.xiaoying.moebroker.api.netty.SerializableDecoder;
+import me.xiaoying.moebroker.api.netty.SerializableEncoder;
+import me.xiaoying.moebroker.api.processor.ProcessorManager;
 import me.xiaoying.moebroker.server.netty.ConnectionHandler;
+import me.xiaoying.moebroker.server.netty.MessageHandler;
 
 public abstract class BrokerServer {
     private final BrokerAddress address;
@@ -19,8 +23,12 @@ public abstract class BrokerServer {
 
     private EventLoopGroup workerGroup;
 
+    private ProcessorManager processorManager;
+
     public BrokerServer(BrokerAddress address) {
         this.address = address;
+
+        this.processorManager = new ProcessorManager();
     }
 
     public void run() {
@@ -39,6 +47,9 @@ public abstract class BrokerServer {
                      @Override
                      protected void initChannel(SocketChannel ch) throws Exception {
                          ch.pipeline()
+                                 .addLast(new SerializableEncoder())
+                                 .addLast(new SerializableDecoder())
+                                 .addLast(new MessageHandler(BrokerServer.this))
                                  .addLast(new ConnectionHandler(BrokerServer.this));
                      }
                  });
@@ -66,6 +77,9 @@ public abstract class BrokerServer {
         return this.address;
     }
 
+    public ProcessorManager getProcessorManager() {
+        return this.processorManager;
+    }
 
     /**
      * 当 server 启动时会调用此方法
@@ -80,7 +94,7 @@ public abstract class BrokerServer {
     /**
      * 连接关闭时会调用此方法
      */
-    public abstract void onClose();
+    public abstract void onClose(RemoteClient remote);
 
     /**
      * 接收消息时会调用此方法
@@ -90,5 +104,14 @@ public abstract class BrokerServer {
     /**
      * 报错触发方法
      */
-    public abstract void onError(RemoteClient remote, Throwable cause);
+    public void onError(RemoteClient remote, Throwable cause) {
+        if (!remote.getChannel().isActive()) {
+            this.onClose(remote);
+            return;
+        }
+
+        cause.printStackTrace();
+    }
+
+//    public abstract void onError(RemoteClient remote, Throwable cause);
 }

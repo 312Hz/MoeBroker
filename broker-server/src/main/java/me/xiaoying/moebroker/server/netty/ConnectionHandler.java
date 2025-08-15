@@ -33,6 +33,6 @@ public class ConnectionHandler extends ChannelHandlerAdapter {
 
         String[] split = host.split(":");
 
-        return new RemoteClient(new BrokerAddress(split[0], Integer.parseInt(split[1])));
+        return new RemoteClient(new BrokerAddress(split[0], Integer.parseInt(split[1])), ctx.channel());
     }
 }

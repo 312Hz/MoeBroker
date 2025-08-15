@@ -18,6 +18,6 @@ public class ConnectionHandler extends ChannelHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.client.onErrorCaught(cause);
+        this.client.onError(cause);
     }
 }

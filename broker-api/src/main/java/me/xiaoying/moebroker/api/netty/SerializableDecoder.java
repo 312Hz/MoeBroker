@@ -3,13 +3,11 @@ package me.xiaoying.moebroker.api.netty;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import me.xiaoying.moebroker.api.message.Message;
-import me.xiaoying.moebroker.api.message.ObjectMessage;
 import me.xiaoying.moebroker.api.utils.SerializationUtil;
 
 import java.util.List;
 
-public class MessageDecoder extends ByteToMessageDecoder {
+public class SerializableDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         if (in.readableBytes() < 4)
