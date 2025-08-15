@@ -1,4 +1,4 @@
-package me.xiaoying.moebroker.server.bootstrap.logger;
+package me.xiaoying.moebroker.client.bootstrap.logger;
 
 import me.xiaoying.logger.ChatColor;
 import me.xiaoying.logger.event.EventHandler;

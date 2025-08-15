@@ -1,29 +1,118 @@
 package me.xiaoying.moebroker.server;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import me.xiaoying.moebroker.api.BrokerAddress;
-import me.xiaoying.moebroker.api.netty.MessageDecoder;
-import me.xiaoying.moebroker.api.netty.MessageEncoder;
-import me.xiaoying.moebroker.server.netty.ConnectionEventHandler;
-import me.xiaoying.moebroker.server.netty.ServerHandler;
+import me.xiaoying.moebroker.api.RemoteClient;
+import me.xiaoying.moebroker.api.executor.ExecutorManager;
+import me.xiaoying.moebroker.api.message.MessageHelper;
+import me.xiaoying.moebroker.api.message.RequestMessage;
+import me.xiaoying.moebroker.api.netty.SerializableDecoder;
+import me.xiaoying.moebroker.api.netty.SerializableEncoder;
+import me.xiaoying.moebroker.api.processor.ProcessorManager;
+import me.xiaoying.moebroker.server.netty.ConnectionHandler;
+import me.xiaoying.moebroker.server.netty.MessageHandler;
 
-import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public abstract class BrokerServer {
     private final BrokerAddress address;
-    private volatile boolean running = false;
+
+    private ChannelFuture channelFuture;
+
+    private EventLoopGroup bossGroup;
+
+    private EventLoopGroup workerGroup;
+
+    private ProcessorManager processorManager;
 
     public BrokerServer(BrokerAddress address) {
         this.address = address;
+
+        this.processorManager = new ProcessorManager();
+    }
+
+    public void run() {
+        ExecutorManager.getExecutor("broker").execute(this::start);
+    }
+
+    private void start() {
+        this.workerGroup = new NioEventLoopGroup();
+        this.bossGroup = new NioEventLoopGroup();
+
+        ServerBootstrap bootstrap = new ServerBootstrap();
+
+         bootstrap.group(this.bossGroup, this.workerGroup)
+                 .channel(NioServerSocketChannel.class)
+                 .childHandler(new ChannelInitializer<SocketChannel>() {
+                     @Override
+                     protected void initChannel(SocketChannel ch) throws Exception {
+                         ch.pipeline()
+                                 .addLast(new SerializableEncoder())
+                                 .addLast(new SerializableDecoder())
+                                 .addLast(new MessageHandler(BrokerServer.this))
+                                 .addLast(new ConnectionHandler(BrokerServer.this));
+                     }
+                 });
+
+         this.channelFuture = bootstrap.bind(this.address.getHost(), this.address.getPort()).syncUninterruptibly();
+         this.channelFuture.addListener((ChannelFutureListener) future -> {
+             if (!future.isSuccess())
+                 return;
+
+             ExecutorManager.getExecutor("broker").execute(this::onStart);
+         });
+
+        try {
+            this.channelFuture.sync();
+            this.channelFuture.channel().closeFuture().sync();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            this.bossGroup.shutdownGracefully();
+            this.workerGroup.shutdownGracefully();
+        }
+    }
+
+    public BrokerAddress getAddress() {
+        return this.address;
+    }
+
+    public ProcessorManager getProcessorManager() {
+        return this.processorManager;
+    }
+
+    public void oneway(Object object) {
+        this.channelFuture.channel().writeAndFlush(new RequestMessage(object));
+    }
+
+    public Object invokeSync(Object object) {
+        return this.invokeSync(object, 3000);
+    }
+
+    public Object invokeSync(Object object, long timeoutMillis) {
+        CompletableFuture<Object> future = new CompletableFuture<>();
+
+        RequestMessage message = new RequestMessage(object)
+                .setChannel(this.channelFuture.channel())
+                .setFuture(future)
+                .setNeedResponse(true);
+
+        MessageHelper.captureMessage(message, message.getChannel());
+
+        this.channelFuture.channel().writeAndFlush(message);
+
+        try {
+            return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -34,67 +123,22 @@ public abstract class BrokerServer {
     /**
      * 获取新请求时会调用此方法
      */
-    public abstract void onOpen();
+    public abstract void onOpen(RemoteClient remote);
 
     /**
      * 连接关闭时会调用此方法
      */
-    public abstract void onClose();
-
-    /**
-     * 接收消息时会调用此方法
-     */
-    public abstract void onMessage();
+    public abstract void onClose(RemoteClient remote);
 
     /**
      * 报错触发方法
      */
-    public abstract void onErrorCaught();
+    public void onError(RemoteClient remote, Throwable cause) {
+        if (!remote.getChannel().isActive()) {
+            this.onClose(remote);
+            return;
+        }
 
-    public void run() {
-        new Thread(() -> {
-            EventLoopGroup workerGroup = new NioEventLoopGroup();
-            ServerBootstrap bootstrap = new ServerBootstrap();
-
-            try (EventLoopGroup bossGroup = new NioEventLoopGroup()) {
-                bootstrap.group(bossGroup, workerGroup)
-                        .channel(NioServerSocketChannel.class)
-                        .childHandler(new ChannelInitializer<SocketChannel>() {
-                            @Override
-                            protected void initChannel(SocketChannel socketChannel) throws Exception {
-                                socketChannel.pipeline()
-                                        .addLast(new MessageEncoder())
-                                        .addLast(new MessageDecoder())
-                                        .addLast(new ServerHandler())
-                                        .addLast(new ConnectionEventHandler(BrokerServer.this));
-                            }
-                        });
-
-                ChannelFuture future = bootstrap.bind(new InetSocketAddress(this.address.getHost(), this.address.getPort()));
-
-                future.addListener((ChannelFutureListener) channelFuture -> {
-                    if (!future.isSuccess())
-                        return;
-
-                    this.running = true;
-                    this.onStart();
-                });
-
-                future.sync();
-                future.channel().closeFuture().sync();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } finally {
-                workerGroup.shutdownGracefully();
-            }
-        }).start();
-    }
-
-    public BrokerAddress getAddress() {
-        return this.address;
-    }
-
-    public boolean isRunning() {
-        return this.running;
+        cause.printStackTrace();
     }
 }
