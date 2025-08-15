@@ -28,6 +28,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<Serializable> {
             return;
 
         Message message = (Message) msg;
+        MessageHelper.captureMessage(message, ctx.channel());
 
         if (message instanceof RequestMessage) {
             this.handleRequestMessage(ctx, (RequestMessage) message);

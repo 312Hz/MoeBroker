@@ -16,6 +16,7 @@ import me.xiaoying.moebroker.api.message.RequestMessage;
 import me.xiaoying.moebroker.api.netty.SerializableDecoder;
 import me.xiaoying.moebroker.api.netty.SerializableEncoder;
 import me.xiaoying.moebroker.api.processor.ProcessorManager;
+import me.xiaoying.moebroker.api.service.InvokeMethodMessageProcessor;
 import me.xiaoying.moebroker.client.netty.ClientMessageHandler;
 import me.xiaoying.moebroker.client.netty.ConnectionHandler;
 
@@ -37,7 +38,9 @@ public abstract class BrokerClient implements Protocol {
 
     public BrokerClient(final BrokerAddress address) {
         this.address = address;
+
         this.processorManager = new ProcessorManager();
+        this.processorManager.registerProcessor(new InvokeMethodMessageProcessor());
     }
 
     public void run() {
@@ -56,10 +59,10 @@ public abstract class BrokerClient implements Protocol {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
-                                    .addLast(BrokerClient.this.workerGroup, new SerializableEncoder())
-                                    .addLast(BrokerClient.this.workerGroup, new SerializableDecoder())
-                                    .addLast(BrokerClient.this.workerGroup, new ClientMessageHandler(BrokerClient.this))
-                                    .addLast(BrokerClient.this.workerGroup, new ConnectionHandler(BrokerClient.this));
+                                    .addLast(new SerializableEncoder())
+                                    .addLast(new SerializableDecoder())
+                                    .addLast(new ClientMessageHandler(BrokerClient.this))
+                                    .addLast(new ConnectionHandler(BrokerClient.this));
                         }
                     });
 

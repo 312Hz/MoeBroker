@@ -14,6 +14,7 @@ import me.xiaoying.moebroker.api.message.RequestMessage;
 import me.xiaoying.moebroker.api.netty.SerializableDecoder;
 import me.xiaoying.moebroker.api.netty.SerializableEncoder;
 import me.xiaoying.moebroker.api.processor.ProcessorManager;
+import me.xiaoying.moebroker.api.service.InvokeMethodMessageProcessor;
 import me.xiaoying.moebroker.server.netty.ConnectionHandler;
 import me.xiaoying.moebroker.server.netty.MessageHandler;
 
@@ -37,6 +38,7 @@ public abstract class BrokerServer implements Protocol {
         this.address = address;
 
         this.processorManager = new ProcessorManager();
+        this.processorManager.registerProcessor(new InvokeMethodMessageProcessor());
     }
 
     public void run() {
