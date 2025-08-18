@@ -11,6 +11,8 @@ import me.xiaoying.moebroker.api.RemoteClient;
 import me.xiaoying.moebroker.api.executor.ExecutorManager;
 import me.xiaoying.moebroker.api.message.MessageHelper;
 import me.xiaoying.moebroker.api.message.RequestMessage;
+import me.xiaoying.moebroker.api.message.heartbeat.HeartbeatPingMessage;
+import me.xiaoying.moebroker.api.message.heartbeat.HeartbeatProcessor;
 import me.xiaoying.moebroker.api.netty.SerializableDecoder;
 import me.xiaoying.moebroker.api.netty.SerializableEncoder;
 import me.xiaoying.moebroker.api.processor.ProcessorManager;
@@ -38,6 +40,7 @@ public abstract class BrokerServer implements Protocol {
         this.address = address;
 
         this.processorManager = new ProcessorManager();
+        this.processorManager.registerProcessor(new HeartbeatProcessor());
         this.processorManager.registerProcessor(new InvokeMethodMessageProcessor());
     }
 
@@ -51,26 +54,27 @@ public abstract class BrokerServer implements Protocol {
 
         ServerBootstrap bootstrap = new ServerBootstrap();
 
-         bootstrap.group(this.bossGroup, this.workerGroup)
-                 .channel(NioServerSocketChannel.class)
-                 .childHandler(new ChannelInitializer<SocketChannel>() {
-                     @Override
-                     protected void initChannel(SocketChannel ch) throws Exception {
-                         ch.pipeline()
-                                 .addLast(new SerializableEncoder())
-                                 .addLast(new SerializableDecoder())
-                                 .addLast(new MessageHandler(BrokerServer.this))
-                                 .addLast(new ConnectionHandler(BrokerServer.this));
-                     }
-                 });
+        bootstrap.group(this.bossGroup, this.workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        ch.pipeline()
+                                .addLast(new SerializableEncoder())
+                                .addLast(new SerializableDecoder())
+                                .addLast(new MessageHandler(BrokerServer.this))
+                                .addLast(new ConnectionHandler(BrokerServer.this));
+                    }
+                });
 
-         this.channelFuture = bootstrap.bind(this.address.getHost(), this.address.getPort()).syncUninterruptibly();
-         this.channelFuture.addListener((ChannelFutureListener) future -> {
-             if (!future.isSuccess())
-                 return;
+        this.channelFuture = bootstrap.bind(this.address.getHost(), this.address.getPort()).syncUninterruptibly();
+        this.channelFuture.addListener((ChannelFutureListener) future -> {
+            if (!future.isSuccess())
+                return;
 
-             ExecutorManager.getExecutor("broker").execute(this::onStart);
-         });
+            ExecutorManager.getExecutor("broker").execute(this::onStart);
+            ExecutorManager.getScheduledExecutor("heartbeat").scheduleWithFixedDelay(() -> this.invokeSync(new HeartbeatPingMessage()), 30, 30, TimeUnit.SECONDS);
+        });
 
         try {
             this.channelFuture.sync();

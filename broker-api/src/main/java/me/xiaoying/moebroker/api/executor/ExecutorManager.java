@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class ExecutorManager {
     private static final Map<String, ExecutorService> executors = new HashMap<>();
@@ -11,6 +12,7 @@ public class ExecutorManager {
     // 创建默认线程池
     static {
         ExecutorManager.getFixedExecutor("broker", Runtime.getRuntime().availableProcessors());
+        ExecutorManager.getScheduledExecutor("heartbeat", Runtime.getRuntime().availableProcessors());
     }
 
     public static ExecutorService getExecutor(final String name) {
@@ -29,7 +31,27 @@ public class ExecutorManager {
         return ExecutorManager.executors.computeIfAbsent(name, k -> Executors.newCachedThreadPool());
     }
 
-    public static ExecutorService getScheduledExecutor(String name, int size) {
-        return ExecutorManager.executors.computeIfAbsent(name, k -> Executors.newScheduledThreadPool(size));
+
+    public static ScheduledExecutorService getScheduledExecutor(String name) {
+        if (!ExecutorManager.executors.containsKey(name))
+            return null;
+
+        ExecutorService executorService = ExecutorManager.executors.get(name);
+
+        if (!(executorService instanceof ScheduledExecutorService))
+            return null;
+
+        return (ScheduledExecutorService) executorService;
+    }
+
+    public static ScheduledExecutorService getScheduledExecutor(String name, int size) {
+        ExecutorService executor;
+
+        if (ExecutorManager.executors.containsKey(name) && (executor = ExecutorManager.executors.get(name)) instanceof ScheduledExecutorService)
+            return (ScheduledExecutorService) executor;
+
+        executor = Executors.newScheduledThreadPool(size);
+        ExecutorManager.executors.put(name, executor);
+        return (ScheduledExecutorService) executor;
     }
 }

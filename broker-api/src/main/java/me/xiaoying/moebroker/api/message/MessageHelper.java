@@ -4,8 +4,8 @@ import io.netty.channel.Channel;
 import me.xiaoying.moebroker.api.executor.ExecutorManager;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class MessageHelper {
     private static final Map<String, Message> messages = new HashMap<>();
@@ -13,17 +13,7 @@ public class MessageHelper {
     static {
         // 一般情况只会有一个线程运行，所以直接指定大小为 1
         // 移除过期消息
-        ExecutorManager.getFixedExecutor("message_helper", 1).execute(() -> {
-            Iterator<Map.Entry<String, Message>> iterator = MessageHelper.messages.entrySet().iterator();
-
-            Map.Entry<String, Message> entry;
-            while (iterator.hasNext() && (entry = iterator.next()) != null) {
-                if (entry.getValue().alive())
-                    continue;
-
-                iterator.remove();
-            }
-        });
+        ExecutorManager.getScheduledExecutor("message_helper", 1).scheduleWithFixedDelay(() -> MessageHelper.messages.values().removeIf(message -> !message.alive()), 1, 1, TimeUnit.SECONDS);
     }
 
     public static Message getMessage(String id) {
