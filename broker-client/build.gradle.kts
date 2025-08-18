@@ -1,12 +1,12 @@
 plugins {
-    id("com.github.johnrengelman.shadow").version("8.1.1")
-}
+    alias(libs.plugins.shadow)
 
-group = "me.xiaoying.moebroker.client"
+    id("moebroker-publish")
+}
 
 dependencies {
     implementation(project(":broker-api"))
 
     // netty
-    implementation("io.netty:netty-all:5.0.0.Alpha2")
+    implementation(libs.netty)
 }

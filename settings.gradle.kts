@@ -1,6 +1,18 @@
-rootProject.name = "MoeBroker"
-include("broker-api")
-include("broker-client")
-include("broker-client-bootstrap")
-include("broker-server")
-include("broker-server-bootstrap")
+pluginManagement {
+    includeBuild("build-logic")
+
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = "moebroker"
+
+include(
+    ":broker-api",
+    ":broker-client",
+    ":broker-server",
+    ":broker-client-bootstrap",
+    ":broker-server-bootstrap"
+)

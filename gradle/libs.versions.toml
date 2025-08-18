@@ -1,0 +1,13 @@
+[versions]
+netty = "5.0.0.Alpha2"
+shadow = "8.1.1"
+snakeyaml = "2.4"
+javassist = "3.30.2-GA"
+
+[libraries]
+netty = { module = "io.netty:netty-all", version.ref = "netty" }
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
+javassist = { module = "org.javassist:javassist", version.ref = "javassist" }
+
+[plugins]
+shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
