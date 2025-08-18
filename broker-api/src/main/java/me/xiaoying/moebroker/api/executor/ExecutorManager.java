@@ -12,6 +12,7 @@ public class ExecutorManager {
     // 创建默认线程池
     static {
         ExecutorManager.getFixedExecutor("broker", Runtime.getRuntime().availableProcessors());
+        ExecutorManager.getScheduledExecutor("heartbeat", Runtime.getRuntime().availableProcessors());
     }
 
     public static ExecutorService getExecutor(final String name) {
@@ -28,6 +29,19 @@ public class ExecutorManager {
 
     public static ExecutorService getCacheExecutor(String name) {
         return ExecutorManager.executors.computeIfAbsent(name, k -> Executors.newCachedThreadPool());
+    }
+
+
+    public static ScheduledExecutorService getScheduledExecutor(String name) {
+        if (!ExecutorManager.executors.containsKey(name))
+            return null;
+
+        ExecutorService executorService = ExecutorManager.executors.get(name);
+
+        if (!(executorService instanceof ScheduledExecutorService))
+            return null;
+
+        return (ScheduledExecutorService) executorService;
     }
 
     public static ScheduledExecutorService getScheduledExecutor(String name, int size) {
