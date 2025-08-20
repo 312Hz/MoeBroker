@@ -30,5 +30,9 @@ public class BootStrap {
 
         BrokerServer server = new Server(new BrokerAddress("0.0.0.0", 22332)).onStart(() -> Broker.getLogger().info("Done({}s)! For help, type \"help\"", new DecimalFormat("0.000").format((double) (System.currentTimeMillis() - start) / 1000)));
         server.run();
+
+        Terminal terminal = new Terminal();
+        EventHandle.registerEvent(terminal);
+        terminal.run();
     }
 }
