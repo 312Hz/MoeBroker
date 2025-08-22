@@ -6,9 +6,11 @@ import me.xiaoying.moebroker.api.Broker;
 import me.xiaoying.moebroker.api.BrokerAddress;
 import me.xiaoying.moebroker.api.file.SimpleFileManager;
 import me.xiaoying.moebroker.server.BrokerServer;
+import me.xiaoying.moebroker.server.bootstrap.api.plugin.JavaPluginLoader;
 import me.xiaoying.moebroker.server.bootstrap.file.FileConfig;
 import me.xiaoying.moebroker.server.bootstrap.logger.LoggerListener;
 
+import java.io.File;
 import java.text.DecimalFormat;
 
 public class BootStrap {
@@ -30,5 +32,13 @@ public class BootStrap {
 
         BrokerServer server = new Server(new BrokerAddress("0.0.0.0", 22332)).onStart(() -> Broker.getLogger().info("Done({}s)! For help, type \"help\"", new DecimalFormat("0.000").format((double) (System.currentTimeMillis() - start) / 1000)));
         server.run();
+
+        Terminal terminal = new Terminal();
+        EventHandle.registerEvent(terminal);
+        terminal.run();
+
+        // plugin
+        JavaPluginLoader javaPluginLoader = new JavaPluginLoader();
+        javaPluginLoader.loadPlugins(new File("./plugins"));
     }
 }

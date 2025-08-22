@@ -14,5 +14,6 @@ include(
     ":broker-client",
     ":broker-server",
     ":broker-client-bootstrap",
+    ":broker-server-bootstrap-api",
     ":broker-server-bootstrap"
 )
