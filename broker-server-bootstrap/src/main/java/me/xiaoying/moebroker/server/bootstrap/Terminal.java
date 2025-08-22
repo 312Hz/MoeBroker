@@ -30,10 +30,14 @@ public class Terminal implements Listener {
 
     public void run() {
         ExecutorManager.getScheduledExecutor("terminal").scheduleAtFixedRate(() -> {
-//            Broker.getLogger().print(this.prompt);
+            Broker.getLogger().print(this.prompt);
 
             Scanner scanner = new Scanner(System.in);
-            System.out.println(scanner.nextLine());
+
+            if (!scanner.nextLine().equals("stop"))
+                return;
+
+
         }, 1, 1, TimeUnit.NANOSECONDS);
     }
 }
