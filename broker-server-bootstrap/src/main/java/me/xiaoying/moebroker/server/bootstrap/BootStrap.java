@@ -6,7 +6,6 @@ import me.xiaoying.moebroker.api.Broker;
 import me.xiaoying.moebroker.api.BrokerAddress;
 import me.xiaoying.moebroker.api.file.SimpleFileManager;
 import me.xiaoying.moebroker.server.BrokerServer;
-import me.xiaoying.moebroker.server.bootstrap.api.plugin.JavaPlugin;
 import me.xiaoying.moebroker.server.bootstrap.api.plugin.Plugin;
 import me.xiaoying.moebroker.server.bootstrap.api.plugin.PluginManager;
 import me.xiaoying.moebroker.server.bootstrap.file.FileConfig;
