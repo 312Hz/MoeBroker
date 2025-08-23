@@ -1,9 +1,10 @@
 plugins {
     id("moebroker-publish")
+//    alias(libs.plugins.shadow)
 }
 
 dependencies {
-    implementation(project(":broker-api"))
+    compileOnly(project(":broker-api"))
 
     compileOnly(libs.snakeyaml)
 }

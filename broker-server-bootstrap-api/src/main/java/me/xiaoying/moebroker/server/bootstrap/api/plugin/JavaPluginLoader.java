@@ -77,6 +77,7 @@ public class JavaPluginLoader {
             PluginDescription pluginDescription = new PluginDescription(name, version, main, description, authors, dependencies, softDependencies);
 
             PluginClassloader pluginClassloader = new PluginClassloader(this, this.getClass().getClassLoader(), file, pluginDescription);
+
             this.loaders.put(name, pluginClassloader);
 
             jar.close();
@@ -170,7 +171,7 @@ public class JavaPluginLoader {
             try {
                 clazz = pluginClassloader.findClass(name, false);
             } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
+                // not do anything
             }
 
             if (clazz != null)
