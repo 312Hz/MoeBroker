@@ -54,7 +54,7 @@ public class PluginClassloader extends URLClassLoader {
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
-        return this.findClass(name);
+        return this.findClass(name, true);
     }
 
     Class<?> findClass(String name, boolean global) throws ClassNotFoundException {
@@ -64,16 +64,18 @@ public class PluginClassloader extends URLClassLoader {
         Class<?> result = this.classes.get(name);
         if (result != null)
             return result;
+
         if (global)
-            return this.loader.getClassByName(name);
+            result = this.loader.getClassByName(name);
 
-        result = super.findClass(name);
+        if (result == null) {
+            result = super.findClass(name);
 
-        if (result != null) {
-            this.classes.put(name, result);
-            this.loader.setClass(name, result);
+            if (result != null)
+                this.loader.setClass(name, result);
         }
 
+        this.classes.put(name, result);
         return result;
     }
 }
