@@ -13,11 +13,12 @@
 
 ```bash
 .
-├─broker-api				# API 接口
-├─broker-client				# 客户端模块
-├─broker-server				# 服务端模块
-├─broker-client-bootstrap	# 客户端启动模块(分离 broker-client 以方便开发者自行实现其他功能)
-└─broker-server-bootstrap	# 服务端启动模块(分离 broker-server 以方便开发者自行实现其他功能)
+├─broker-api					# API 接口
+├─broker-client					# 客户端模块
+├─broker-server					# 服务端模块
+├─broker-client-bootstrap		# 客户端启动模块(分离 broker-client 以方便开发者自行实现其他功能)(考虑是否保留此模块)
+├─broker-server-bootstrap		# 服务端启动模块(分离 broker-server 以方便开发者自行实现其他功能)
+└─broker-server-bootstrap-api 	# 服务端启动模块开发接口(若自行实现 BrokerServer 则不需要使用此模块)
 ```
 
 ## ⚒️技术栈
@@ -30,5 +31,5 @@
 ## 🕛开发方向
 
 - [ ] Callback 和 Future 通讯方式
-- [ ] Tag 标签
 - [ ] Reconnection 业务
+- [ ] close 终端
