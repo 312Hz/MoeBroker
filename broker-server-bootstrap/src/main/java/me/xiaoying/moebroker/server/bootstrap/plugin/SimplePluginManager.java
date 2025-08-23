@@ -54,7 +54,7 @@ public class SimplePluginManager implements PluginManager {
     }
 
     @Override
-    public void registerEvent(Listener listener) {
+    public void registerEvent(Listener listener, Plugin plugin) {
         for (Method method : listener.getClass().getDeclaredMethods()) {
             EventHandler annotation;
             if ((annotation = method.getAnnotation(EventHandler.class)) == null)
@@ -71,9 +71,24 @@ public class SimplePluginManager implements PluginManager {
             if (list == null)
                 list = new ArrayList<>();
 
-            list.add(new RegisteredListener(listener, annotation.priority(), method));
+            list.add(new RegisteredListener(listener, annotation.priority(), method, plugin));
             this.knownListeners.put(annotation.priority(), list);
         }
+    }
+
+    @Override
+    public void unregisterEvent(Plugin plugin) {
+        this.knownListeners.values().forEach(list -> {
+            Iterator<RegisteredListener> iterator = list.iterator();
+
+            RegisteredListener registeredListener;
+            while (iterator.hasNext() && (registeredListener = iterator.next()) != null) {
+                if (registeredListener.getPlugin() != plugin)
+                    continue;
+
+                iterator.remove();
+            }
+        });
     }
 
     @Override

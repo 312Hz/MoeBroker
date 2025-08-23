@@ -18,7 +18,9 @@ public interface PluginManager {
 
     void disablePlugin(Plugin plugin);
 
-    void registerEvent(Listener listener);
+    void registerEvent(Listener listener, Plugin plugin);
+
+    void unregisterEvent(Plugin plugin);
 
     void unregisterEvent(Listener listener);
 
