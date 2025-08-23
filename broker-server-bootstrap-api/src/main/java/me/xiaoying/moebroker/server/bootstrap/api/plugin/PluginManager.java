@@ -1,5 +1,8 @@
 package me.xiaoying.moebroker.server.bootstrap.api.plugin;
 
+import me.xiaoying.moebroker.server.bootstrap.api.event.Event;
+import me.xiaoying.moebroker.server.bootstrap.api.event.Listener;
+
 import java.io.File;
 
 public interface PluginManager {
@@ -14,4 +17,10 @@ public interface PluginManager {
     void enablePlugin(Plugin plugin);
 
     void disablePlugin(Plugin plugin);
+
+    void registerEvent(Listener listener);
+
+    void unregisterEvent(Listener listener);
+
+    void callEvent(Event event);
 }
