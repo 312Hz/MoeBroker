@@ -1,6 +1,3 @@
-import org.gradle.kotlin.dsl.build
-import org.gradle.kotlin.dsl.invoke
-
 plugins {
     application
 

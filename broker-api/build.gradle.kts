@@ -1,3 +1,7 @@
+plugins {
+    id("moebroker-publish")
+}
+
 dependencies {
     implementation(libs.snakeyaml)
 
