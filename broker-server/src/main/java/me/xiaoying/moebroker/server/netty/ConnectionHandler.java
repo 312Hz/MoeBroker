@@ -18,7 +18,11 @@ public class ConnectionHandler extends ChannelHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
 
-        ExecutorManager.getExecutor("broker").execute(() -> this.server.onOpen(this.getRemoteClient(ctx)));
+        ExecutorManager.getExecutor("broker").execute(() -> {
+            RemoteClient remoteClient = this.getRemoteClient(ctx);
+            this.server.captureClient(remoteClient);
+            this.server.onOpen(remoteClient);
+        });
     }
 
     @Override

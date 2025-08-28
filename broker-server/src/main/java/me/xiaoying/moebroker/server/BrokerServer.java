@@ -11,6 +11,7 @@ import me.xiaoying.moebroker.api.RemoteClient;
 import me.xiaoying.moebroker.api.executor.ExecutorManager;
 import me.xiaoying.moebroker.api.message.MessageHelper;
 import me.xiaoying.moebroker.api.message.RequestMessage;
+import me.xiaoying.moebroker.api.message.close.CloseRequestMessage;
 import me.xiaoying.moebroker.api.message.heartbeat.HeartbeatPingMessage;
 import me.xiaoying.moebroker.api.message.heartbeat.HeartbeatProcessor;
 import me.xiaoying.moebroker.api.netty.SerializableDecoder;
@@ -19,11 +20,11 @@ import me.xiaoying.moebroker.api.processor.ProcessorManager;
 import me.xiaoying.moebroker.api.service.InvokeMethodMessageProcessor;
 import me.xiaoying.moebroker.server.netty.ConnectionHandler;
 import me.xiaoying.moebroker.server.netty.MessageHandler;
+import me.xiaoying.moebroker.server.processor.CloseRequestMessageProcessor;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
 
 public abstract class BrokerServer implements Protocol {
     private final BrokerAddress address;
@@ -36,12 +37,17 @@ public abstract class BrokerServer implements Protocol {
 
     private ProcessorManager processorManager;
 
+    private final List<RemoteClient> clients = new ArrayList<>();
+
+    private final List<ScheduledFuture<?>> scheduledFutures = new ArrayList<>();
+
     public BrokerServer(BrokerAddress address) {
         this.address = address;
 
         this.processorManager = new ProcessorManager();
         this.processorManager.registerProcessor(new HeartbeatProcessor());
         this.processorManager.registerProcessor(new InvokeMethodMessageProcessor());
+        this.processorManager.registerProcessor(new CloseRequestMessageProcessor());
     }
 
     public void run() {
@@ -73,7 +79,7 @@ public abstract class BrokerServer implements Protocol {
                 return;
 
             ExecutorManager.getExecutor("broker").execute(this::onStart);
-            ExecutorManager.getScheduledExecutor("heartbeat").scheduleWithFixedDelay(() -> this.invokeSync(new HeartbeatPingMessage()), 30, 30, TimeUnit.SECONDS);
+            this.scheduledFutures.add(ExecutorManager.getScheduledExecutor("heartbeat").scheduleWithFixedDelay(() -> this.invokeSync(new HeartbeatPingMessage()), 30, 30, TimeUnit.SECONDS));
         });
 
         try {
@@ -118,6 +124,21 @@ public abstract class BrokerServer implements Protocol {
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void close() {
+        this.clients.forEach(client -> {
+            // 因为 close 可能代表 Server 将要强制关闭，所以需要处理返回内容
+            client.oneway(new CloseRequestMessage("stop", System.currentTimeMillis()));
+
+            client.getChannel().close();
+        });
+
+        this.scheduledFutures.forEach(scheduledFuture -> scheduledFuture.cancel(true));
+    }
+
+    public void captureClient(RemoteClient client) {
+        this.clients.add(client);
     }
 
     /**

@@ -13,6 +13,8 @@ import me.xiaoying.moebroker.api.Protocol;
 import me.xiaoying.moebroker.api.executor.ExecutorManager;
 import me.xiaoying.moebroker.api.message.MessageHelper;
 import me.xiaoying.moebroker.api.message.RequestMessage;
+import me.xiaoying.moebroker.api.message.close.CloseRequestMessage;
+import me.xiaoying.moebroker.api.message.close.CloseResponseMessage;
 import me.xiaoying.moebroker.api.message.heartbeat.HeartbeatProcessor;
 import me.xiaoying.moebroker.api.netty.SerializableDecoder;
 import me.xiaoying.moebroker.api.netty.SerializableEncoder;
@@ -20,6 +22,7 @@ import me.xiaoying.moebroker.api.processor.ProcessorManager;
 import me.xiaoying.moebroker.api.service.InvokeMethodMessageProcessor;
 import me.xiaoying.moebroker.client.netty.ClientMessageHandler;
 import me.xiaoying.moebroker.client.netty.ConnectionHandler;
+import me.xiaoying.moebroker.client.processor.CloseRequestMessageProcessor;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -42,6 +45,7 @@ public abstract class BrokerClient implements Protocol {
 
         this.processorManager = new ProcessorManager();
         this.processorManager.registerProcessor(new HeartbeatProcessor());
+        this.processorManager.registerProcessor(new CloseRequestMessageProcessor());
         this.processorManager.registerProcessor(new InvokeMethodMessageProcessor());
     }
 
@@ -112,6 +116,14 @@ public abstract class BrokerClient implements Protocol {
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void close() {
+        CloseResponseMessage response = (CloseResponseMessage) this.invokeSync(new CloseRequestMessage("normal", System.currentTimeMillis()));
+        if (!response.isAccepted())
+            return;
+
+        this.channelFuture.channel().close();
     }
 
     public BrokerAddress getAddress() {

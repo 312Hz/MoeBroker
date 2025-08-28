@@ -14,6 +14,8 @@ dependencies {
     implementation(project(":broker-server-bootstrap-api"))
 
     implementation(libs.snakeyaml)
+    implementation(libs.jline)
+    implementation(libs.terminal)
 }
 
 tasks {
