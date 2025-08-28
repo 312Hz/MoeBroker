@@ -3,11 +3,15 @@ netty = "5.0.0.Alpha2"
 shadow = "8.1.1"
 snakeyaml = "2.4"
 javassist = "3.30.2-GA"
+jline = "3.30.5"
+terminal = "3.30.5"
 
 [libraries]
 netty = { module = "io.netty:netty-all", version.ref = "netty" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 javassist = { module = "org.javassist:javassist", version.ref = "javassist" }
+jline = { module = "org.jline:jline", version.ref = "jline" }
+terminal = { module = "org.jline:jline-terminal", version.ref = "terminal" }
 
 [plugins]
 shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
