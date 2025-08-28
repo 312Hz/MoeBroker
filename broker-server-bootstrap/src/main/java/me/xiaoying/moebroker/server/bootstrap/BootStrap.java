@@ -26,7 +26,7 @@ public class BootStrap {
         // initialize
         BootStrap.initialize();
 
-        BCore.setServer(new Server(new BrokerAddress("0.0.0.0", 22332)).onStart(() -> Broker.getLogger().info("Done({}s)! For help, type \"help\"", new DecimalFormat("0.000").format((double) (System.currentTimeMillis() - start) / 1000))));
+        BCore.setServer(new Server(new BrokerAddress(FileConfig.SERVER_HOST, FileConfig.SERVER_PORT)).onStart(() -> Broker.getLogger().info("Done({}s)! For help, type \"help\"", new DecimalFormat("0.000").format((double) (System.currentTimeMillis() - start) / 1000))));
         BCore.getServer().run();
 
         BootStrap.terminal = new Terminal();
