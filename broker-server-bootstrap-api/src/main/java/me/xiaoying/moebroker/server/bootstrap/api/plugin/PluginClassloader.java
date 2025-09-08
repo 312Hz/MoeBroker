@@ -3,12 +3,14 @@ package me.xiaoying.moebroker.server.bootstrap.api.plugin;
 import lombok.Getter;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.jar.JarFile;
 
 public class PluginClassloader extends URLClassLoader {
     private final Map<String, Class<?>> classes = new ConcurrentHashMap<>();
@@ -21,15 +23,23 @@ public class PluginClassloader extends URLClassLoader {
     @Getter
     private final JavaPlugin plugin;
 
+    private final JarFile jar;
+
     public PluginClassloader(JavaPluginLoader loader, ClassLoader classLoader, File file, PluginDescription description) throws MalformedURLException {
-        super(new URL[] {file.toURI().toURL()}, classLoader);
+        super(new URL[]{file.toURI().toURL()}, classLoader);
 
         this.loader = loader;
         this.description = description;
 
+        try {
+            this.jar = new JarFile(file);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         Class<?> mainClass;
         try {
-             mainClass = Class.forName(description.getMain(), true, this);
+            mainClass = Class.forName(description.getMain(), true, this);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -62,20 +72,24 @@ public class PluginClassloader extends URLClassLoader {
             throw new ClassNotFoundException(name);
 
         Class<?> result = this.classes.get(name);
+
         if (result != null)
             return result;
+
+        result = super.findClass(name);
+
+        if (result != null) {
+            this.classes.put(name, result);
+            this.loader.setClass(name, result);
+            return result;
+        }
 
         if (global)
             result = this.loader.getClassByName(name);
 
-        if (result == null) {
-            result = super.findClass(name);
+        if (result != null)
+            return result;
 
-            if (result != null)
-                this.loader.setClass(name, result);
-        }
-
-        this.classes.put(name, result);
-        return result;
+        throw new ClassNotFoundException(name);
     }
 }
