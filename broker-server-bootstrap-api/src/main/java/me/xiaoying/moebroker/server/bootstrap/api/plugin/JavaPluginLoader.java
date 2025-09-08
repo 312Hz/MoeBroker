@@ -171,11 +171,11 @@ public class JavaPluginLoader {
         for (String string : this.loaders.keySet()) {
             PluginClassloader pluginClassloader = this.loaders.get(string);
 
-            try {
-                clazz = pluginClassloader.findClass(name, false);
-            } catch (ClassNotFoundException e) {
-//                 not do anything
-            }
+//            try {
+//                clazz = pluginClassloader.findClass(name, false);
+//            } catch (ClassNotFoundException e) {
+////                 not do anything
+//            }
 
             if (clazz != null) {
                 this.classes.put(name, clazz);

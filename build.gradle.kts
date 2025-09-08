@@ -21,9 +21,6 @@ subprojects {
     }
 
     dependencies {
-        // sqlfactory
-        implementation("me.xiaoying:sqlfactory:1.0.0")
-
         // logger
         implementation("me.xiaoying:logger:1.0.1")
 

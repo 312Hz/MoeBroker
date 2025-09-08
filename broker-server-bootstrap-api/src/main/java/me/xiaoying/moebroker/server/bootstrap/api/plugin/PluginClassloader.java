@@ -62,34 +62,34 @@ public class PluginClassloader extends URLClassLoader {
         return this.classes.keySet();
     }
 
-    @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
-        return this.findClass(name, true);
-    }
-
-    Class<?> findClass(String name, boolean global) throws ClassNotFoundException {
-        if (name.startsWith("me.xiaoying.moebroker.server."))
-            throw new ClassNotFoundException(name);
-
-        Class<?> result = this.classes.get(name);
-
-        if (result != null)
-            return result;
-
-        result = super.findClass(name);
-
-        if (result != null) {
-            this.classes.put(name, result);
-            this.loader.setClass(name, result);
-            return result;
-        }
-
-        if (global)
-            result = this.loader.getClassByName(name);
-
-        if (result != null)
-            return result;
-
-        throw new ClassNotFoundException(name);
-    }
+//    @Override
+//    protected Class<?> findClass(String name) throws ClassNotFoundException {
+//        return this.findClass(name, true);
+//    }
+//
+//    Class<?> findClass(String name, boolean global) throws ClassNotFoundException {
+//        if (name.startsWith("me.xiaoying.moebroker.server."))
+//            throw new ClassNotFoundException(name);
+//
+//        Class<?> result = this.classes.get(name);
+//
+//        if (result != null)
+//            return result;
+//
+//        result = super.findClass(name);
+//
+//        if (result != null) {
+//            this.classes.put(name, result);
+//            this.loader.setClass(name, result);
+//            return result;
+//        }
+//
+//        if (global)
+//            result = this.loader.getClassByName(name);
+//
+//        if (result != null)
+//            return result;
+//
+//        throw new ClassNotFoundException(name);
+//    }
 }
