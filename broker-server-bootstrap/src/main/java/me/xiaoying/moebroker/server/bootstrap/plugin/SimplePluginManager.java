@@ -1,6 +1,7 @@
 package me.xiaoying.moebroker.server.bootstrap.plugin;
 
 import me.xiaoying.moebroker.server.bootstrap.api.event.*;
+import me.xiaoying.moebroker.server.bootstrap.api.plugin.JavaPlugin;
 import me.xiaoying.moebroker.server.bootstrap.api.plugin.JavaPluginLoader;
 import me.xiaoying.moebroker.server.bootstrap.api.plugin.Plugin;
 import me.xiaoying.moebroker.server.bootstrap.api.plugin.PluginManager;
@@ -30,12 +31,27 @@ public class SimplePluginManager implements PluginManager {
 
     @Override
     public Plugin loadPlugin(File file) {
-        return this.loader.loadPlugin(file);
+        Plugin plugin = this.loader.loadPlugin(file);
+
+        if (plugin == null)
+            return null;
+
+        this.plugins.put(((JavaPlugin) plugin).getName(), plugin);
+        return plugin;
     }
 
     @Override
     public Plugin[] loadPlugins(File directory) {
-        return this.loader.loadPlugins(directory);
+        Plugin[] plugins = this.loader.loadPlugins(directory);
+
+        for (Plugin plugin : plugins) {
+            if (plugin == null)
+                continue;
+
+            this.plugins.put(((JavaPlugin) plugin).getName(), plugin);
+        }
+
+        return plugins;
     }
 
     @Override
