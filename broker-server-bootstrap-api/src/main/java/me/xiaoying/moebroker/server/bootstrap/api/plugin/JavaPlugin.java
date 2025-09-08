@@ -1,5 +1,7 @@
 package me.xiaoying.moebroker.server.bootstrap.api.plugin;
 
+import java.io.File;
+
 public class JavaPlugin extends Plugin {
     private ClassLoader classloader;
 
@@ -19,6 +21,10 @@ public class JavaPlugin extends Plugin {
 
     public ClassLoader getClassLoader() {
         return this.classloader;
+    }
+
+    public File getDataFolder() {
+        return new File(System.getProperty("user.dir") + "/plugins/" + this.getName());
     }
 
     void init(PluginDescription description, ClassLoader classloader) {

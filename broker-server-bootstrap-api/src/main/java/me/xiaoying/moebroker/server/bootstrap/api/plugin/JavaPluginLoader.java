@@ -110,6 +110,9 @@ public class JavaPluginLoader {
     }
 
     public void enablePlugin(Plugin plugin) {
+        if (plugin == null)
+            return;
+
         if (plugin.isEnabled())
             Broker.getLogger().warn("Plugin {} already enabled.", ((JavaPlugin) plugin).getDescription().getName());
 
@@ -171,11 +174,13 @@ public class JavaPluginLoader {
             try {
                 clazz = pluginClassloader.findClass(name, false);
             } catch (ClassNotFoundException e) {
-                // not do anything
+//                 not do anything
             }
 
-            if (clazz != null)
+            if (clazz != null) {
+                this.classes.put(name, clazz);
                 return clazz;
+            }
         }
 
         return null;
