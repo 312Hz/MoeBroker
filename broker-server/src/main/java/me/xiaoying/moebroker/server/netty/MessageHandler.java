@@ -2,7 +2,6 @@ package me.xiaoying.moebroker.server.netty;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import me.xiaoying.moebroker.api.Broker;
 import me.xiaoying.moebroker.api.BrokerAddress;
 import me.xiaoying.moebroker.api.RemoteClient;
 import me.xiaoying.moebroker.api.message.Message;
@@ -23,7 +22,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<Serializable> {
     }
 
     @Override
-    protected void messageReceived(ChannelHandlerContext ctx, Serializable msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, Serializable msg) throws Exception {
         if (!(msg instanceof Message))
             return;
 

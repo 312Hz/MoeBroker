@@ -1,5 +1,5 @@
 [versions]
-netty = "5.0.0.Alpha2"
+netty = "4.1.127.Final"
 shadow = "8.1.1"
 snakeyaml = "2.4"
 javassist = "3.30.2-GA"

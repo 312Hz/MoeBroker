@@ -1,4 +1,4 @@
-package me.xiaoying.moebroker.api.netty;
+package me.xiaoying.moebroker.server.bootstrap.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -14,12 +14,5 @@ public class SerializableEncoder extends MessageToByteEncoder<Serializable> {
 
         out.writeInt(bytes.length);
         out.writeBytes(bytes);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        System.err.println("[MoeBroker Decoder] Exception caught: ");
-        cause.printStackTrace();
-        ctx.close();
     }
 }
