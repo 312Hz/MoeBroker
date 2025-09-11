@@ -30,15 +30,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public abstract class BrokerClient implements Protocol {
-    private final ProcessorManager processorManager;
+    protected final ProcessorManager processorManager;
 
-    private final BrokerAddress address;
+    protected volatile boolean running = false;
 
-    private ChannelFuture channelFuture;
+    protected final BrokerAddress address;
 
-    private EventLoopGroup bossGroup;
+    protected ChannelFuture channelFuture;
 
-    private DefaultEventExecutorGroup workerGroup;
+    protected EventLoopGroup bossGroup;
+
+    protected DefaultEventExecutorGroup workerGroup;
 
     public BrokerClient(final BrokerAddress address) {
         this.address = address;
@@ -51,6 +53,14 @@ public abstract class BrokerClient implements Protocol {
 
     public void run() {
         ExecutorManager.getExecutor("broker").execute(this::start);
+
+        while (!this.running) {
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private void start() {
@@ -68,7 +78,7 @@ public abstract class BrokerClient implements Protocol {
                                     .addLast(new SerializableEncoder())
                                     .addLast(new SerializableDecoder())
                                     .addLast(new ClientMessageHandler(BrokerClient.this))
-                                    .addLast(new ConnectionHandler(BrokerClient.this));
+                                    .addLast(BrokerClient.this.workerGroup, "clientHandler", new ConnectionHandler(BrokerClient.this));
                         }
                     });
 
@@ -79,6 +89,7 @@ public abstract class BrokerClient implements Protocol {
                 if (!future.isSuccess())
                     return;
 
+                this.running = true;
                 ExecutorManager.getExecutor("broker").execute(this::onOpen);
             });
 
@@ -122,6 +133,8 @@ public abstract class BrokerClient implements Protocol {
         CloseResponseMessage response = (CloseResponseMessage) this.invokeSync(new CloseRequestMessage("normal", System.currentTimeMillis()));
         if (!response.isAccepted())
             return;
+
+        this.running = false;
 
         this.channelFuture.channel().close();
     }

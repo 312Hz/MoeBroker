@@ -1,7 +1,5 @@
 package me.xiaoying.moebroker.api.processor;
 
-import me.xiaoying.moebroker.api.Broker;
-
 import java.util.HashMap;
 import java.util.Map;
 

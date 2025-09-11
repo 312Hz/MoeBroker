@@ -77,6 +77,8 @@ public class JavaPluginLoader {
             PluginDescription pluginDescription = new PluginDescription(name, version, main, description, authors, dependencies, softDependencies);
 
             PluginClassloader pluginClassloader = new PluginClassloader(this, this.getClass().getClassLoader(), file, pluginDescription);
+            // 暂未支持 depend 和 softdepend 故任意位置 onLoad
+            pluginClassloader.getPlugin().onLoad();
 
             this.loaders.put(name, pluginClassloader);
 

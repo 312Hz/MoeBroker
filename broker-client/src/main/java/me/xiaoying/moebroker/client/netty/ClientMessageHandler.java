@@ -22,7 +22,7 @@ public class ClientMessageHandler extends SimpleChannelInboundHandler<Serializab
     }
 
     @Override
-    protected void messageReceived(ChannelHandlerContext ctx, Serializable msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, Serializable msg) throws Exception {
         if (!(msg instanceof Message))
             return;
 

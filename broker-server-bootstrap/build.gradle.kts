@@ -16,6 +16,8 @@ dependencies {
     implementation(libs.snakeyaml)
     implementation(libs.jline)
     implementation(libs.terminal)
+
+    compileOnly(libs.netty)
 }
 
 tasks {

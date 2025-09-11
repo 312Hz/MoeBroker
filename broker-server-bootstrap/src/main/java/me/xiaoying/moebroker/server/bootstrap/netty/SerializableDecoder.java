@@ -1,10 +1,13 @@
-package me.xiaoying.moebroker.api.netty;
+package me.xiaoying.moebroker.server.bootstrap.netty;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import me.xiaoying.moebroker.api.utils.SerializationUtil;
+import me.xiaoying.moebroker.server.bootstrap.api.BCore;
+import me.xiaoying.moebroker.server.bootstrap.api.plugin.Plugin;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SerializableDecoder extends ByteToMessageDecoder {
@@ -25,14 +28,11 @@ public class SerializableDecoder extends ByteToMessageDecoder {
         byte[] bytes = new byte[length];
         in.readBytes(bytes);
 
-        Object obj = SerializationUtil.deserialize(bytes);
-        out.add(obj);
-    }
+        List<ClassLoader> classloaders = new ArrayList<>();
+        for (Plugin plugin : BCore.getPluginManager().getPlugins())
+            classloaders.add(plugin.getClass().getClassLoader());
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        System.err.println("[MoeBroker Decoder] Exception caught: ");
-        cause.printStackTrace();
-        ctx.close();
+        Object obj = SerializationUtil.deserialize(bytes, classloaders);
+        out.add(obj);
     }
 }

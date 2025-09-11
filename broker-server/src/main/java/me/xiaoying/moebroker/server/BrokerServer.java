@@ -29,17 +29,19 @@ import java.util.concurrent.*;
 public abstract class BrokerServer implements Protocol {
     private final BrokerAddress address;
 
-    private ChannelFuture channelFuture;
+    protected volatile boolean running = false;
 
-    private EventLoopGroup bossGroup;
+    protected ChannelFuture channelFuture;
 
-    private EventLoopGroup workerGroup;
+    protected EventLoopGroup bossGroup;
 
-    private ProcessorManager processorManager;
+    protected EventLoopGroup workerGroup;
 
-    private final List<RemoteClient> clients = new ArrayList<>();
+    protected ProcessorManager processorManager;
 
-    private final List<ScheduledFuture<?>> scheduledFutures = new ArrayList<>();
+    protected final List<RemoteClient> clients = new ArrayList<>();
+
+    protected final List<ScheduledFuture<?>> scheduledFutures = new ArrayList<>();
 
     public BrokerServer(BrokerAddress address) {
         this.address = address;
@@ -52,9 +54,17 @@ public abstract class BrokerServer implements Protocol {
 
     public void run() {
         ExecutorManager.getExecutor("broker").execute(this::start);
+
+        while (!this.running) {
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
-    private void start() {
+    protected void start() {
         this.workerGroup = new NioEventLoopGroup();
         this.bossGroup = new NioEventLoopGroup();
 
@@ -78,6 +88,7 @@ public abstract class BrokerServer implements Protocol {
             if (!future.isSuccess())
                 return;
 
+            this.running = true;
             ExecutorManager.getExecutor("broker").execute(this::onStart);
             this.scheduledFutures.add(ExecutorManager.getScheduledExecutor("heartbeat").scheduleWithFixedDelay(() -> this.invokeSync(new HeartbeatPingMessage()), 30, 30, TimeUnit.SECONDS));
         });
@@ -133,6 +144,8 @@ public abstract class BrokerServer implements Protocol {
 
             client.getChannel().close();
         });
+
+        this.running = false;
 
         this.scheduledFutures.forEach(scheduledFuture -> scheduledFuture.cancel(true));
     }
